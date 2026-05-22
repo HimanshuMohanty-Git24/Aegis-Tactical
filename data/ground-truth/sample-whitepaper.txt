@@ -1,0 +1,49 @@
+# Aegis-Tactical: Ground Truth Document — Cyber Defense Whitepaper
+
+## Executive Summary
+
+This document outlines the core principles and frameworks used by the Aegis-Tactical
+system for identifying and classifying information threats within a defined perimeter.
+
+## Threat Classification Framework
+
+### Tier 1 — Critical Threats
+- **State-sponsored disinformation campaigns**: Coordinated efforts by nation-state actors
+  to manipulate public perception through fabricated news, deepfakes, and social engineering.
+- **Supply chain compromise indicators**: Signals that a trusted software or hardware vendor
+  has been infiltrated, potentially affecting downstream consumers.
+
+### Tier 2 — High-Priority Threats
+- **AI-generated misinformation**: Content created by generative AI systems designed to
+  mislead, including synthetic media, fabricated research papers, and false testimonials.
+- **Credential harvesting campaigns**: Phishing operations targeting employees through
+  impersonation of legitimate services and trusted contacts.
+
+### Tier 3 — Monitoring-Level Threats
+- **Reputation manipulation**: Review bombing, astroturfing, and coordinated inauthentic
+  behavior on social media platforms.
+- **Data exfiltration signals**: Unusual patterns of data transfer that may indicate
+  unauthorized access to sensitive information stores.
+
+## Verification Methodology
+
+The Aegis-Tactical system employs a three-stage verification pipeline:
+
+1. **Source Triangulation**: Every claim is cross-referenced against at least three
+   independent sources. Single-source intelligence is flagged as "unverified."
+
+2. **Temporal Consistency**: Information is checked against a timeline of known events.
+   Claims that conflict with established timelines receive elevated scrutiny.
+
+3. **Semantic Drift Detection**: The system monitors for subtle changes in narrative
+   framing that may indicate coordinated manipulation campaigns. Baseline semantic
+   fingerprints are maintained for key topics.
+
+## Rules of Engagement
+
+- The system SHALL NOT take autonomous action that could cause real-world harm.
+- All destructive operations (e.g., blocking IPs, revoking credentials) REQUIRE
+  human-in-the-loop approval.
+- Personally Identifiable Information (PII) discovered during analysis MUST be
+  redacted before storage or reporting.
+- Confidence scores below 0.7 MUST be flagged for human review.

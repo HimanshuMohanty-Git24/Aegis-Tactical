@@ -1,0 +1,35 @@
+# Project Brief: Nyayamitra AI
+
+## Overview
+Nyayamitra AI is an intelligent legal assistant built to democratize access to legal
+information in India. The system uses natural language processing to help citizens
+understand their legal rights related to consumer protection, labor law, and
+fundamental rights under the Indian Constitution.
+
+## Key Capabilities
+- Natural language legal query resolution in English and Hindi
+- Case precedent retrieval from Indian court databases
+- Simplified explanation of complex legal provisions
+- Document summarization for legal notices and contracts
+
+## Architecture
+- Frontend: React-based web application with responsive design
+- Backend: Python FastAPI service with RAG pipeline
+- Vector Store: Pinecone for legal document embeddings
+- LLM: Amazon Bedrock (Claude 3.5 Sonnet) for reasoning
+
+## Known Limitations
+- System is advisory only — not a substitute for professional legal counsel
+- Coverage limited to Indian federal law; state-specific statutes may vary
+- Real-time case updates depend on court database API availability
+- Hindi language support is partial (translations may lack legal precision)
+
+## Project Status
+- Version 1.2 released January 2026
+- Active development ongoing
+- 500+ test cases validated
+- User feedback indicates 87% satisfaction rate for consumer protection queries
+
+## Contact
+- Project Lead: Aegis-Tactical Team
+- Repository: Internal GitLab (aegis/nyayamitra-ai)

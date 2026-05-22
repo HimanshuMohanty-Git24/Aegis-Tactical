@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# CDK
+cdk.out/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.local
+
+# Build artifacts
+*.js
+!jest.config.js
+*.d.ts
+*.js.map
+
+# Test
+coverage/
+
+# Local artifacts
+out-fetch-news.json
+invoke-payload.json
+sf-input.json
+tmp-bedrock-all-policy.json
+report-check.md
+report-check-new.md
+Codebase.txt
+AgentContext/Docs.md
+AgentContext/Building Project Aegis-Tactical System.md
