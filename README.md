@@ -71,15 +71,15 @@ Aegis Tactical executes automated research missions based on user objectives:
 
 | AWS Service | Icon | Core Responsibility in Aegis | Setup Details |
 | :--- | :---: | :--- | :--- |
-| **Amazon Bedrock Agents** | `![Bedrock](https://img.shields.io/badge/Bedrock-FF9900?logo=amazon-aws&logoColor=white)` | Multi-Agent Collaboration Plane | Supervisor agent routes inquiries to Scout, Analyst, or Sentinel collaborators. |
-| **Bedrock Knowledge Base** | `![KB](https://img.shields.io/badge/KB-5E35B1?logo=amazon-aws&logoColor=white)` | RAG Vector Retrieval | Uses Titan Embeddings V2 (1024-dim), linked to OpenSearch Serverless. |
-| **Bedrock Guardrails** | `![Guardrails](https://img.shields.io/badge/Guardrails-E53935?logo=amazon-aws&logoColor=white)` | System Safety & Privacy | Content filtering, denylist rules, and PII anonymization. |
-| **AWS Step Functions** | `![Step Functions](https://img.shields.io/badge/SFN-F57C00?logo=amazon-aws&logoColor=white)` | Orchestrated Execution Pipeline | Orchestrates the tool Lambdas, retries, and conditional verdict routing. |
-| **AWS Lambda** | `![Lambda](https://img.shields.io/badge/Lambda-FFD600?logo=amazon-lambda&logoColor=black)` | Serverless Execution Tools | Specialized tools for RSS reading, GitHub API pulling, and S3 report writing (Python 3.12). |
-| **Amazon S3** | `![S3](https://img.shields.io/badge/S3-563D7C?logo=amazon-s3&logoColor=white)` | Corpus & Brief Storage | Holds Ground Truth document corpus and generated Markdown reports. |
-| **OpenSearch Serverless** | `![OpenSearch](https://img.shields.io/badge/AOSS-005EB8?logo=opensearch&logoColor=white)` | Vector Database | Serverless collection using HNSW indexing (FAISS engine) for fast semantic search. |
-| **Amazon CloudWatch** | `![CloudWatch](https://img.shields.io/badge/CloudWatch-00897B?logo=amazon-cloudwatch&logoColor=white)` | Observability Suite | Operates Dashboards, Logs retention (2 weeks to 1 month), and error alarms. |
-| **Amazon SNS** | `![SNS](https://img.shields.io/badge/SNS-FF9900?logo=amazon-aws&logoColor=white)` | Alert Notification Hub | Distributes systems alarms to operator endpoints. |
+| **Amazon Bedrock Agents** | ![Bedrock](https://img.shields.io/badge/Bedrock-FF9900?logo=amazon-aws&logoColor=white) | Multi-Agent Collaboration Plane | Supervisor agent routes inquiries to Scout, Analyst, or Sentinel collaborators. |
+| **Bedrock Knowledge Base** | ![KB](https://img.shields.io/badge/KB-5E35B1?logo=amazon-aws&logoColor=white) | RAG Vector Retrieval | Uses Titan Embeddings V2 (1024-dim), linked to OpenSearch Serverless. |
+| **Bedrock Guardrails** | ![Guardrails](https://img.shields.io/badge/Guardrails-E53935?logo=amazon-aws&logoColor=white) | System Safety & Privacy | Content filtering, denylist rules, and PII anonymization. |
+| **AWS Step Functions** | ![Step Functions](https://img.shields.io/badge/SFN-F57C00?logo=amazon-aws&logoColor=white) | Orchestrated Execution Pipeline | Orchestrates the tool Lambdas, retries, and conditional verdict routing. |
+| **AWS Lambda** | ![Lambda](https://img.shields.io/badge/Lambda-FFD600?logo=amazon-lambda&logoColor=black) | Serverless Execution Tools | Specialized tools for RSS reading, GitHub API pulling, and S3 report writing (Python 3.12). |
+| **Amazon S3** | ![S3](https://img.shields.io/badge/S3-563D7C?logo=amazon-s3&logoColor=white) | Corpus & Brief Storage | Holds Ground Truth document corpus and generated Markdown reports. |
+| **OpenSearch Serverless** | ![OpenSearch](https://img.shields.io/badge/AOSS-005EB8?logo=opensearch&logoColor=white) | Vector Database | Serverless collection using HNSW indexing (FAISS engine) for fast semantic search. |
+| **Amazon CloudWatch** | ![CloudWatch](https://img.shields.io/badge/CloudWatch-00897B?logo=amazon-cloudwatch&logoColor=white) | Observability Suite | Operates Dashboards, Logs retention (2 weeks to 1 month), and error alarms. |
+| **Amazon SNS** | ![SNS](https://img.shields.io/badge/SNS-FF9900?logo=amazon-aws&logoColor=white) | Alert Notification Hub | Distributes systems alarms to operator endpoints. |
 
 ---
 
