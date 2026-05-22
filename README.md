@@ -1,179 +1,253 @@
-# Project Aegis Tactical
+# 🛡️ Project Aegis Tactical
 
-Production-grade, AWS-native intelligence platform that gathers live external signals, produces evidence-backed reports, and exposes mission outcomes through a non-technical Mission Console.
-
-The system combines:
-
-- AWS CDK infrastructure as code
-- Amazon Bedrock Agents (Supervisor, Scout, Analyst, Sentinel) with collaborator strands
-- Bedrock Knowledge Base + OpenSearch Serverless for RAG
-- Bedrock Guardrails for safety and PII controls
-- Lambda toolchain for ingestion and reporting
-- Step Functions mission orchestration
-- CloudWatch observability and alerting
-- Streamlit Mission Console for operators
+Production-grade, AWS-native autonomous intelligence platform that gathers live external signals, validates findings against a verified ground-truth knowledge base, produces audit-ready briefs, and exposes mission outcomes through a non-technical Streamlit Mission Console.
 
 ---
 
-## Table of Contents
+## ⚡ Tech Stack & Ecosystem
 
-1. What This System Does
-2. How This Helps Operators
-3. AWS-Native Stack
-4. End-to-End Architecture
-5. Mission Execution Workflow
-6. Stack-by-Stack Breakdown
-7. Data Contracts and Mission Outputs
-8. Configuration
-9. Prerequisites
-10. How to Use This Repo
-11. Quick Start
-12. Deploy and Update Commands
-13. Run Missions
-14. Observability and Alerts
-15. Security and Guardrails
-16. Production Readiness Checklist
-17. Cost Notes
-18. Testing
-19. Troubleshooting
-20. Repository Layout
-21. Cleanup
+![AWS Stack](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Amazon Bedrock](https://img.shields.io/badge/Amazon%20Bedrock-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![AWS CDK](https://img.shields.io/badge/AWS%20CDK-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=FF9900)
+![AWS Step Functions](https://img.shields.io/badge/Step%20Functions-F57C00?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-FFD600?style=for-the-badge&logo=amazon-lambda&logoColor=black)
+![Amazon OpenSearch](https://img.shields.io/badge/OpenSearch-005EB8?style=for-the-badge&logo=opensearch&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)
+
+---
+
+## 📋 Table of Contents
+
+1. [System Capabilities](#what-this-system-does)
+2. [Operator Value Proposition](#how-this-helps-operators)
+3. [AWS-Native Integration Table](#aws-native-stack)
+4. [End-to-End System Architecture](#end-to-end-architecture)
+5. [Mission Execution Flow State Machine](#mission-execution-workflow)
+6. [AWS CDK Stack-by-Stack Breakdown](#stack-by-stack-breakdown)
+7. [API Data Contracts & Ingestion Schemas](#data-contracts-and-mission-outputs)
+8. [System Configuration & Variables](#configuration)
+9. [Development Prerequisites](#prerequisites)
+10. [Repository Directory Blueprint](#repository-layout)
+11. [Quick Start Installation](#quick-start)
+12. [CDK Command Cheat-Sheet](#deploy-and-update-commands)
+13. [Executing Missions](#run-missions)
+14. [Observability & Dashboard telemetry](#observability-and-alerts)
+15. [Safety, Guardrails & Policy Redaction](#security-and-guardrails)
+16. [Production Readiness Checklist](#production-readiness-checklist)
+17. [Financial & Cost Analysis](#cost-notes)
+18. [Local Validation & Testing](#testing)
+19. [Common Troubleshooting Scenarios](#troubleshooting)
+20. [Resource Cleanup Guide](#cleanup)
 
 ---
 
 ## What This System Does
 
-Aegis Tactical executes missions with this operational flow:
+Aegis Tactical executes automated research missions based on user objectives:
 
-1. Accept an objective from Streamlit UI or AWS CLI.
-2. Gather intelligence from external feeds.
-3. Analyze evidence and compute dynamic verdicts and confidence.
-4. Red-team the analysis outcome and route final mission status.
-5. Write Markdown and JSON reports to S3.
-6. Expose mission state, output, and health telemetry in CloudWatch and the UI.
-
-The system is designed to answer questions with explicit caveats, confidence, and evidence context.
+1. **Accept Objective**: Reads mission parameters from the Streamlit UI or AWS CLI.
+2. **Collect Signals (Scout)**: Dynamically sweeps external feeds (RSS news feeds, GitHub repository activity, APIs).
+3. **Verify Claims (Analyst)**: Cross-references raw, unstructured intelligence against structured, verified ground-truth documents in a RAG vector database.
+4. **Red-Team & Safeguard (Sentinel)**: Evaluates reports for hallucinations, checks confidence ratings, and applies Bedrock Guardrails to sanitize output.
+5. **Publish Artifacts**: Writes final Markdown briefs and JSON outputs to Amazon S3.
+6. **Alert Operators**: Sends notifications on failures, and feeds real-time metrics to CloudWatch dashboards.
 
 ---
 
 ## How This Helps Operators
 
-- Turns open-ended objectives into evidence-backed briefs with explicit confidence scores.
-- Reduces analyst time by automating collection, verification, and report generation.
-- Creates an auditable trail with S3 report artifacts and CloudWatch execution history.
-- Enforces safety and escalation paths before reports are released.
-- Gives non-technical users a Mission Console for running and reviewing missions.
+* **Saves Hours of Research**: Automates data ingestion and filtering across multiple channels.
+* **Evidence-Backed Insights**: Outputs clear confidence scores, citations, and evidence lists.
+* **Traceable Decisions**: Creates an immutable execution and report history in S3.
+* **Strict Guardrails**: Prevents leakage of PII, internal codes, or execution of destructive operations.
+* **Simplified Console**: Streamlit dashboard makes it easy for non-technical users to trigger and monitor runs.
 
 ---
 
 ## AWS-Native Stack
 
-Aegis is built as an AWS-native multi-agent "strands" pattern: a Supervisor agent orchestrates Scout,
-Analyst, and Sentinel collaborators using Bedrock runtime aliases. The current Step Functions workflow
-invokes Lambda tools directly, while the Bedrock agent plane is deployed and ready for agent-native execution.
-
-| AWS service | Purpose in Aegis |
-| --- | --- |
-| AWS CDK | Infrastructure as code for all stacks |
-| Amazon Bedrock Agents | Supervisor and collaborator agents with tool access |
-| Amazon Bedrock Knowledge Base | RAG over ground-truth documents |
-| Amazon Bedrock Guardrails | Safety, PII, and policy enforcement (agent plane) |
-| AWS Lambda | Intelligence ingestion and report writing tools |
-| AWS Step Functions | Mission orchestration, retries, and routing |
-| Amazon S3 | Ground-truth storage and report artifacts |
-| Amazon OpenSearch Serverless | Vector store for Knowledge Base embeddings |
-| Amazon CloudWatch | Logs, metrics, dashboards, alarms |
-| Amazon SNS | Alert fan-out |
-| Amazon EventBridge | Optional scheduled missions |
-| AWS IAM | Least-privilege roles and permissions |
+| AWS Service | Icon | Core Responsibility in Aegis | Setup Details |
+| :--- | :---: | :--- | :--- |
+| **Amazon Bedrock Agents** | `![Bedrock](https://img.shields.io/badge/Bedrock-FF9900?logo=amazon-aws&logoColor=white)` | Multi-Agent Collaboration Plane | Supervisor agent routes inquiries to Scout, Analyst, or Sentinel collaborators. |
+| **Bedrock Knowledge Base** | `![KB](https://img.shields.io/badge/KB-5E35B1?logo=amazon-aws&logoColor=white)` | RAG Vector Retrieval | Uses Titan Embeddings V2 (1024-dim), linked to OpenSearch Serverless. |
+| **Bedrock Guardrails** | `![Guardrails](https://img.shields.io/badge/Guardrails-E53935?logo=amazon-aws&logoColor=white)` | System Safety & Privacy | Content filtering, denylist rules, and PII anonymization. |
+| **AWS Step Functions** | `![Step Functions](https://img.shields.io/badge/SFN-F57C00?logo=amazon-aws&logoColor=white)` | Orchestrated Execution Pipeline | Orchestrates the tool Lambdas, retries, and conditional verdict routing. |
+| **AWS Lambda** | `![Lambda](https://img.shields.io/badge/Lambda-FFD600?logo=amazon-lambda&logoColor=black)` | Serverless Execution Tools | Specialized tools for RSS reading, GitHub API pulling, and S3 report writing (Python 3.12). |
+| **Amazon S3** | `![S3](https://img.shields.io/badge/S3-563D7C?logo=amazon-s3&logoColor=white)` | Corpus & Brief Storage | Holds Ground Truth document corpus and generated Markdown reports. |
+| **OpenSearch Serverless** | `![OpenSearch](https://img.shields.io/badge/AOSS-005EB8?logo=opensearch&logoColor=white)` | Vector Database | Serverless collection using HNSW indexing (FAISS engine) for fast semantic search. |
+| **Amazon CloudWatch** | `![CloudWatch](https://img.shields.io/badge/CloudWatch-00897B?logo=amazon-cloudwatch&logoColor=white)` | Observability Suite | Operates Dashboards, Logs retention (2 weeks to 1 month), and error alarms. |
+| **Amazon SNS** | `![SNS](https://img.shields.io/badge/SNS-FF9900?logo=amazon-aws&logoColor=white)` | Alert Notification Hub | Distributes systems alarms to operator endpoints. |
 
 ---
 
 ## End-to-End Architecture
 
+The following diagram illustrates how the system's operational layers interact, highlighting the separation between the automated orchestration pipeline (Step Functions invoking Lambda tools) and the deployed Bedrock Agent plane.
+
 ```mermaid
 flowchart TB
-  U["Mission Operator<br/>Streamlit UI or AWS CLI"]
+  %% Class Definitions
+  classDef operator fill:#eaebed,stroke:#7b8089,stroke-width:2px,color:#1e293b;
+  classDef workflow fill:#ffe7d6,stroke:#f57c00,stroke-width:2px,color:#000;
+  classDef lambda fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000;
+  classDef storage fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px,color:#000;
+  classDef database fill:#e8f5e9,stroke:#43a047,stroke-width:2px,color:#000;
+  classDef brain fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#000;
+  classDef agent fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#000;
+  classDef security fill:#ffebee,stroke:#e53935,stroke-width:2px,color:#000;
+  classDef monitoring fill:#e0f2f1,stroke:#00897b,stroke-width:2px,color:#000;
+  classDef external fill:#eceff1,stroke:#546e7a,stroke-width:2px,color:#000;
 
-  SFN["Step Functions<br/>aegis-mission-executor"]
-  FN_NEWS["Lambda<br/>aegis-fetch-news"]
-  FN_REPORT_A["Lambda<br/>aegis-write-report (Analyst mode)"]
-  FN_REPORT_S["Lambda<br/>aegis-write-report (Sentinel mode)"]
+  %% Nodes
+  Operator["👤 Mission Operator<br/>(Streamlit Console / AWS CLI)"]:::operator
+  
+  subgraph AWS_Cloud ["AWS Cloud Environment"]
+    subgraph Core_Workflow ["Orchestration & Workflow Engine"]
+      StateMachine["⚡ Step Functions<br/>(aegis-mission-executor)"]:::workflow
+    end
 
-  FEEDS[("External Intelligence Feeds<br/>BBC, NYT, Reuters RSS")]
+    subgraph Lambda_Tools ["Serverless Compute / Lambdas"]
+      FetchNews["⚡ Ingestion Tool<br/>(aegis-fetch-news)"]:::lambda
+      FetchRss["⚡ Feeds Tool<br/>(aegis-fetch-rss)"]:::lambda
+      FetchGithub["⚡ Code Activity Tool<br/>(aegis-fetch-github)"]:::lambda
+      WriteReport["⚡ Report Tool<br/>(aegis-write-report)"]:::lambda
+    end
 
-  S3[("S3 Ground Truth and Reports<br/>aegis-ground-truth-account-region")]
-  KB["Bedrock Knowledge Base<br/>aegis-tactical-kb"]
-  AOSS[("OpenSearch Serverless Vector Store<br/>collection: aegis-vectors")]
+    subgraph Storage_Data ["Data & Knowledge Layers"]
+      S3_Bucket[("📦 Ground Truth & Reports S3<br/>(aegis-ground-truth-*)")]:::storage
+      AOSS_Store[("🔍 OpenSearch Serverless<br/>(aegis-vectors index)")]:::database
+      KB["🧠 Bedrock Knowledge Base<br/>(aegis-tactical-kb)"]:::brain
+    end
 
-  AGENTS["Bedrock Agents (deployed)<br/>Supervisor, Scout, Analyst, Sentinel"]
-  GUARD["Bedrock Guardrail<br/>aegis-defense-guardrail"]
+    subgraph Bedrock_Agents ["Autonomous Agentic Plane (Deployed)"]
+      Supervisor["👑 Supervisor Agent<br/>(aegis-supervisor - Nova Premier)"]:::agent
+      Scout["🔍 Scout Agent<br/>(aegis-scout - Nova Lite)"]:::agent
+      Analyst["📊 Analyst Agent<br/>(aegis-analyst - Nova Premier)"]:::agent
+      Sentinel["🛡️ Sentinel Agent<br/>(aegis-sentinel - Nova Premier)"]:::agent
+      Guardrail["🛡️ Bedrock Guardrail<br/>(aegis-defense-guardrail)"]:::security
+    end
 
-  CW["CloudWatch<br/>Dashboard, Logs, Alarms"]
-  SNS["SNS Topic<br/>aegis-tactical-alerts"]
+    subgraph Monitoring_Telemetry ["Observability & Alerts"]
+      CloudWatch["📊 CloudWatch Dashboard<br/>& Metrics / Log Groups"]:::monitoring
+      SNS["🔔 SNS Alert Topic<br/>(aegis-tactical-alerts)"]:::monitoring
+    end
+  end
 
-  U --> SFN
-  SFN --> FN_NEWS
-  FN_NEWS --> FEEDS
+  External_Sources["🌐 External Intelligence Feeds<br/>(BBC, NYT, Reuters RSS, GitHub API)"]:::external
 
-  SFN --> FN_REPORT_A
-  SFN --> FN_REPORT_S
+  %% Relationships / Data Flows
+  Operator ==>|"1. Starts Mission / Submits Objective"| StateMachine
+  
+  StateMachine -->|"2a. Invoke News Fetch"| FetchNews
+  StateMachine -->|"2b. Invoke RSS Fetch"| FetchRss
+  StateMachine -->|"2c. Invoke GitHub Activity"| FetchGithub
+  StateMachine ==>|"3. Run Analysis & Write Report"| WriteReport
+  StateMachine ==>|"4. Run Guardrails & Red-Team"| WriteReport
+  
+  FetchNews -->|Fetch Articles| External_Sources
+  FetchRss -->|Parse Feeds| External_Sources
+  FetchGithub -->|Query API| External_Sources
 
-  FN_REPORT_A --> S3
-  FN_REPORT_S --> S3
+  WriteReport -->|"Uploads MD/JSON"| S3_Bucket
+  S3_Bucket -.->|"Sync ground-truth data"| KB
+  KB -->|"Retrieve Context / Embeddings"| AOSS_Store
 
-  S3 --> KB
-  KB --> AOSS
+  %% Agent connections (Agentic Plane Blueprint)
+  Supervisor -.->|"Orchestrates (Router)"| Scout
+  Supervisor -.->|"Orchestrates (Router)"| Analyst
+  Supervisor -.->|"Orchestrates (Router)"| Sentinel
 
-  SFN --> CW
-  FN_NEWS --> CW
-  FN_REPORT_A --> CW
-  FN_REPORT_S --> CW
-  CW --> SNS
+  Scout -.->|"Uses tool schema"| FetchNews
+  Analyst -.->|"Uses tool schema"| WriteReport
+  Analyst -.->|"Direct RAG Integration"| KB
+  Sentinel -.->|"Applies Defense Policies"| Guardrail
 
-  AGENTS -. action groups .-> FN_NEWS
-  AGENTS -. report tool .-> FN_REPORT_A
-  AGENTS -. guardrail checks .-> GUARD
-  AGENTS -. RAG retrieval .-> KB
+  %% Monitoring
+  StateMachine -->|Metrics| CloudWatch
+  FetchNews -->|Logs/Errors| CloudWatch
+  FetchRss -->|Logs/Errors| CloudWatch
+  FetchGithub -->|Logs/Errors| CloudWatch
+  WriteReport -->|Logs/Errors| CloudWatch
+  CloudWatch -->|"Publish Alarm"| SNS
 ```
 
-### Important Runtime Note
-
-The Step Functions mission path currently invokes Lambda tools directly for Scout, Analyst, and Sentinel stages.
-
-Bedrock Agents are fully deployed and wired with collaborators/action groups, but they are currently used as a deployed agent plane rather than the active Step Functions execution path.
+> [!NOTE]
+> **Runtime Strategy**: The active Step Functions workflow invokes the Python Lambda tools directly to process news and generate report artifacts. The Bedrock Agent plane is fully deployed in AWS, ready for agent-native routing, testing, and supervisor collaboration logic.
 
 ---
 
 ## Mission Execution Workflow
 
+The State Machine guides each execution through defined stages. A report must satisfy safety and confidence thresholds before it is approved.
+
 ```mermaid
 stateDiagram-v2
-  [*] --> INITIATED
-  INITIATED --> SCOUT
-  SCOUT --> ANALYST
-  ANALYST --> SENTINEL
+    classDef initiated fill:#e8f5e9,stroke:#43a047,stroke-width:2px;
+    classDef processing fill:#e3f2fd,stroke:#1e88e5,stroke-width:2px;
+    classDef checking fill:#fffde7,stroke:#fbc02d,stroke-width:2px;
+    classDef success fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000;
+    classDef warning fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef failure fill:#ffebee,stroke:#c62828,stroke-width:2px;
 
-  SENTINEL --> COMPLETED: PASS
-  SENTINEL --> COMPLETED_WITH_CAVEATS: CONDITIONAL_PASS
-  SENTINEL --> ESCALATED: CRITICAL_FAIL
-  SENTINEL --> RETRYING: other verdict
+    [*] --> INITIATED
+    state INITIATED {
+        [*] --> SetupState
+        SetupState --> MissionStarted
+    }
 
-  RETRYING --> ANALYST: retryCount < maxRetries
-  RETRYING --> ESCALATED: retryCount >= maxRetries
+    INITIATED --> SCOUT : Begin Sweep
+    state SCOUT {
+        FetchNewsFeed --> ParseArticles
+        ParseArticles --> GatherOutput
+    }
 
-  COMPLETED --> [*]
-  COMPLETED_WITH_CAVEATS --> [*]
-  ESCALATED --> [*]
+    SCOUT --> ANALYST : Deliver Raw Data
+    state ANALYST {
+        KBQuery --> RAGVerification
+        RAGVerification --> ComputeConfidence
+        ComputeConfidence --> WriteReportDraft
+    }
+
+    ANALYST --> SENTINEL : Review Draft
+    state SENTINEL {
+        VerifyConsistency --> EvaluateSafety
+        EvaluateSafety --> ApplyGuardrailFilters
+    }
+
+    state EVALUATE_VERDICT <<choice>>
+    SENTINEL --> EVALUATE_VERDICT
+
+    EVALUATE_VERDICT --> COMPLETED : PASS (Verifiable, High Confidence)
+    EVALUATE_VERDICT --> COMPLETED_WITH_CAVEATS : CONDITIONAL_PASS (Disputed, Low Confidence)
+    EVALUATE_VERDICT --> ESCALATED : CRITICAL_FAIL (Safety Violation / Guardrail Blocked)
+    
+    state RETRY_CHECK <<choice>>
+    EVALUATE_VERDICT --> RETRY_CHECK : FAIL (Logical Errors or Low Detail)
+
+    RETRY_CHECK --> ANALYST : retryCount < maxRetries (Increment Counter)
+    RETRY_CHECK --> ESCALATED : retryCount >= maxRetries (Exhausted)
+
+    COMPLETED --> [*]
+    COMPLETED_WITH_CAVEATS --> [*]
+    ESCALATED --> [*]
+
+    class INITIATED initiated
+    class SCOUT processing
+    class ANALYST processing
+    class SENTINEL checking
+    class COMPLETED success
+    class COMPLETED_WITH_CAVEATS warning
+    class ESCALATED failure
 ```
-
-Mission retries are bounded with maxRetries = 2.
 
 ---
 
 ## Stack-by-Stack Breakdown
 
-### Deployment Dependency Graph
+Aegis is divided into 6 layered CDK Stacks. Stacks must be deployed in the logical order of their dependency graph.
 
 ```mermaid
 flowchart LR
@@ -187,236 +261,186 @@ flowchart LR
   Workflow --> Observability
 ```
 
-### 1) AegisFoundationStack
+### 1. AegisFoundationStack
+Configures primary data channels:
+* **S3 Ground Truth Bucket**: Stores operational documents and reports. Features managed encryption, public access blocking, and auto-delete hooks for development ease.
+* **Amazon OpenSearch Serverless**: Sets up collections, encryption policies, and network rules. Builds the vector index using the FAISS engine (L2 distance, 1024 dimensions).
+* **Bedrock Knowledge Base**: Binds S3 files and the vector index using Titan Embeddings V2. Sets up automatic document chunking and ingestion mapping.
 
-Core data foundation:
+### 2. AegisLambdaStack
+Provisions serverless Python runtime environments for tools:
+* **`aegis-fetch-news`**: Searches RSS streams.
+* **`aegis-fetch-rss`**: Direct parser for standard web feeds.
+* **`aegis-fetch-github`**: Collects repo activity logs.
+* **`aegis-write-report`**: Writes Markdown and JSON reports directly to the Ground Truth S3 bucket.
+* *Configuration details*: Python 3.12, 30-second execution limit, 256MB memory allocations, least-privilege IAM profiles, and automatic CloudWatch Log Group bindings.
 
-- S3 bucket for documents and reports
-- OpenSearch Serverless vector collection and index
-- Bedrock Knowledge Base using Titan Embeddings V2
-- Initial ground-truth data deployment from data/ground-truth
+### 3. AegisGuardrailsStack
+Establishes system policies via Amazon Bedrock Guardrails:
+* **Content Filtering**: Active filters block hate, insults, sexual content, and violence.
+* **Prompt Injection Control**: Stops attempts to bypass model instructions.
+* **Topic Deny Lists**: Prevents unauthorized modifications (e.g. `DROP TABLE`, destructive API calls) and blocked information lookup.
+* **PII Governance**: Anonymizes emails, phones, names, and IP addresses. Blocks SSNs and access keys.
 
-Key details:
+### 4. AegisAgentsStack
+Instantiates the specialized Bedrock Agents:
+* **Scout Agent** (Nova Lite): Fetches news and GitHub details.
+* **Analyst Agent** (Nova Premier): Validates data against the Knowledge Base and outputs S3 reports.
+* **Sentinel Agent** (Nova Premier): Conducts red-teaming checks and runs guardrail scanning.
+* **Supervisor Agent** (Nova Premier): Directs collaborator sub-agents using a `SUPERVISOR_ROUTER` pattern.
 
-- Bucket: S3-managed encryption, versioning enabled, auto-delete for cleanup
-- OpenSearch index: faiss + hnsw, 1024-dim vectors
-- Knowledge Base field mapping: embedding/text/metadata
+### 5. AegisWorkflowStack
+Deploys the Step Functions workflow (`aegis-mission-executor`):
+* Handles state transitions: Scout $\rightarrow$ Analyst $\rightarrow$ Sentinel.
+* Executes loop evaluations, increments retry metrics, and routes execution results.
+* Provisions EventBridge scheduling options for daily sweep missions.
 
-### 2) AegisLambdaStack
-
-Tool Lambdas:
-
-- aegis-fetch-news
-- aegis-fetch-rss
-- aegis-fetch-github
-- aegis-write-report
-
-Key details:
-
-- Runtime: Python 3.12
-- Timeout: 30s
-- Memory: 256 MB
-- Dedicated CloudWatch log groups
-
-### 3) AegisGuardrailsStack
-
-Bedrock guardrail with:
-
-- Content filters (hate, insults, sexual, violence, misconduct, prompt attack)
-- Denied topics for destructive operations and exploit requests
-- PII detection/anonymization/blocking
-- Managed profanity list and custom word blocklist
-
-### 4) AegisAgentsStack
-
-Deployed Bedrock agents:
-
-- aegis-supervisor
-- aegis-scout
-- aegis-analyst
-- aegis-sentinel
-
-Key details:
-
-- Model families: Nova Premier and Nova Lite
-- Runtime aliases created for collaborator wiring
-- Supervisor collaborator graph configured with Scout, Analyst, Sentinel
-- Analyst has Knowledge Base access
-- Sentinel has guardrail integration
-
-### 5) AegisWorkflowStack
-
-State machine:
-
-- Name: aegis-mission-executor
-- Steps: Initialize -> Scout -> Analyst -> Sentinel -> Verdict Routing
-- Verdict outputs: PASS, CONDITIONAL_PASS, CRITICAL_FAIL, escalation paths
-- Daily EventBridge schedule exists but is disabled by default
-
-### 6) AegisObservabilityStack
-
-Operational monitoring:
-
-- CloudWatch dashboard: AegisTactical-Operations
-- Alarms for mission failures, Lambda errors, mission duration
-- SNS alert topic: aegis-tactical-alerts
-- Structured log groups for agent namespaces
+### 6. AegisObservabilityStack
+Establishes active systems telemetry:
+* **CloudWatch Dashboard**: `AegisTactical-Operations` provides live panels showing mission counts, runtimes, and Lambda latencies.
+* **Alarms**: Triggers on mission failure thresholds, Lambda exceptions, or pipeline timeout limits.
+* **Alerting Topic**: An SNS topic (`aegis-tactical-alerts`) sends notifications to operator endpoints.
 
 ---
 
 ## Data Contracts and Mission Outputs
 
-### Mission Input
-
-Step Functions execution expects:
-
+### Mission Input Contract
+Submit executions using the following JSON schema:
 ```json
 {
-  "objective": "Investigate whether commercial shipping through the Strait of Hormuz is currently stable"
+  "objective": "Verify the stability of shipping lanes through the Red Sea and Gulf of Aden."
 }
 ```
 
-### Mission Output
-
-Typical successful output from state machine:
-
+### Mission Output Payload
+Upon completion, the state machine returns a structured report object:
 ```json
 {
   "status": "COMPLETED_WITH_CAVEATS",
   "verdict": "CONDITIONAL_PASS",
   "confidenceScore": 0.72,
-  "missionId": "mission-ui-verify-20260419-000733",
+  "missionId": "mission-console-20260522-113000",
   "analystVerdict": "DISPUTED",
-  "directAnswer": "Disputed: sources conflict, so the answer is not stable yet.",
-  "reportLocation": "s3://.../reports/yyyy/mm/dd/mission-id.md",
-  "objective": "..."
+  "directAnswer": "Disputed: Regional reports indicate isolated incidents, though convoy activity remains active.",
+  "reportLocation": "s3://aegis-ground-truth-account-region/reports/2026/05/22/mission-console-20260522-113000.md",
+  "objective": "Verify the stability of shipping lanes through the Red Sea and Gulf of Aden."
 }
 ```
 
-### Analyst Logic (current behavior)
-
-The analyst report pipeline computes:
-
-- confidence score from source trust, source diversity, evidence volume, contradiction penalty
-- evidence quality labels (HIGH, MEDIUM, LOW)
-- analyst verdict (SUPPORTED, PARTIALLY_SUPPORTED, DISPUTED, INSUFFICIENT_EVIDENCE, LOW_CONFIDENCE)
-- direct answer summary
-- suggested sentinel route (PASS, CONDITIONAL_PASS, CRITICAL_FAIL)
-
-### Report Artifacts
-
-Each mission writes:
-
-- Markdown report: reports/yyyy/mm/dd/mission-id.md
-- JSON report payload: reports/yyyy/mm/dd/mission-id.json
+### Analyst Evaluation Framework
+The report engine evaluates sources using the following criteria:
+* **Confidence Metric**: Calculates trust scores, source diversity factors, volume of data, and deducts points for conflicts.
+* **Evidence Classification**: Flags details as `HIGH`, `MEDIUM`, or `LOW` quality.
+* **Synthesis Verdict**: Assigns classifications such as `SUPPORTED`, `PARTIALLY_SUPPORTED`, `DISPUTED`, or `INSUFFICIENT_EVIDENCE`.
 
 ---
 
 ## Configuration
 
-### CDK context
-
-Defaults are defined in cdk.json:
-
-- aegis:region (default us-east-1)
-- aegis:environment (default dev)
-
-Override per deployment:
-
+Context definitions are defined in [cdk.json](file:///d:/Projects/Bajra/cdk.json). Update context settings during deployment:
 ```bash
 npx cdk deploy --all --require-approval never -c aegis:region=us-west-2 -c aegis:environment=prod
 ```
 
-### Lambda runtime tuning
-
-Defaults are set in lib/lambda-stack.ts:
-
-- MAX_ARTICLES, MAX_ENTRIES, MAX_RESULTS
-- LOG_LEVEL
-- REPORT_BUCKET, REPORT_PREFIX
-
-Update these values in the stack before deployment if your workload needs different limits.
-
-### Secrets and tokens
-
-GITHUB_TOKEN is intentionally empty by default. For production, store the token in AWS Secrets Manager or
-SSM Parameter Store and inject it into the Lambda environment during deployment.
+### Lambda Environment Context
+System limits are defined inside [lib/lambda-stack.ts](file:///d:/Projects/Bajra/lib/lambda-stack.ts):
+* `MAX_ARTICLES` / `MAX_ENTRIES` / `MAX_RESULTS`: Controls chunk sizes and RSS retrieval bounds.
+* `REPORT_PREFIX`: Key namespace where generated files are placed in S3.
 
 ---
 
 ## Prerequisites
 
-- AWS account with permissions for CDK, Lambda, Step Functions, Bedrock, OpenSearch Serverless, CloudWatch, SNS, S3.
-- AWS CLI configured:
-
-```bash
-aws configure
-```
-
-- Node.js 18+ and npm 9+
-- Python 3.10+
-- AWS CDK CLI:
-
-```bash
-npm install -g aws-cdk
-```
-
-- Bedrock model access in deployment region (default us-east-1):
-
-  - us.amazon.nova-premier-v1:0
-  - us.amazon.nova-lite-v1:0
-  - amazon.titan-embed-text-v2:0
+Ensure your development environment meets the following requirements:
+* **AWS CLI**: Installed and configured with permissions for Amazon Bedrock, OpenSearch Serverless, Lambda, and Step Functions.
+* **Node.js**: Version 18.0 or newer.
+* **Python**: Version 3.10 or newer (for console execution).
+* **AWS CDK CLI**: Version 2.x installed globally:
+  ```bash
+  npm install -g aws-cdk
+  ```
+* **Model Access**: Ensure the following models are enabled in your active region (e.g., `us-east-1`):
+  * `us.amazon.nova-premier-v1:0` (Premier Reasoning)
+  * `us.amazon.nova-lite-v1:0` (Lite Speed)
+  * `amazon.titan-embed-text-v2:0` (Vector Embeddings)
 
 ---
 
-## How to Use This Repo
+## Repository Layout
 
-Typical flow:
-
-1. Install prerequisites.
-2. Deploy the CDK stacks.
-3. Run missions via the Mission Console or Step Functions CLI.
-4. Review reports in S3 and monitor CloudWatch for health and alerts.
-
-For details, follow the Quick Start, Run Missions, and Observability sections below.
+```text
+aegis-tactical/
+├── bin/
+│   └── aegis-tactical.ts         # CDK App entry point - maps & instantiates all stacks
+├── lib/
+│   ├── foundation-stack.ts       # Provisions S3 Bucket, OpenSearch Serverless, & Bedrock KB
+│   ├── lambda-stack.ts           # Deploys Python helper functions (tools)
+│   ├── guardrails-stack.ts       # Sets up PII, Content, and Topic Bedrock Guardrails
+│   ├── agents-stack.ts           # Sets up Scout, Analyst, Sentinel, and Supervisor Bedrock Agents
+│   ├── workflow-stack.ts         # Orchestrates the Step Functions execution workflow
+│   └── observability-stack.ts    # Configures CloudWatch Dashboards, Log Groups, Alarms, and SNS
+├── lambda/                       # Lambda Function Codebases
+│   ├── fetch_news/               # Keyword-based RSS news headlines aggregator
+│   ├── fetch_rss/                # Generic URL feed parser
+│   ├── fetch_github/             # GitHub commit and issue scraper
+│   └── write_report/             # Writes Markdown and JSON reports to S3
+├── agents/                       # Local Python agent validation harness
+│   ├── supervisor/               # Supervisor agent routing script
+│   ├── scout/                    # Scout gatherer script
+│   ├── analyst/                  # Analyst verification script
+│   ├── sentinel/                 # Sentinel red-team evaluation script
+│   └── config.py                 # Centralized configuration class loader
+├── frontend/                     # Operations Mission Console UI
+│   ├── app.py                    # Streamlit Console application logic
+│   └── requirements.txt          # Python frontend requirements list
+├── data/
+│   └── ground-truth/             # Raw PDFs/TXT files copied to S3 during deployment
+└── test/
+    └── aegis-tactical.test.ts    # Integration and deployment tests
+```
 
 ---
 
 ## Quick Start
 
-### Install dependencies
-
+### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-Optional local Python environment for agents and UI:
+### 2. Configure Local Virtual Environments (Optional)
+Setup local runners for testing the agent definitions and launching the console:
 
+**For the Agents harness:**
 ```bash
 cd agents
 python -m venv .venv
-.venv\Scripts\activate
+source .venv/bin/activate      # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cd ..
 ```
 
+**For the Mission Console:**
 ```bash
 cd frontend
 python -m venv .venv
-.venv\Scripts\activate
+source .venv/bin/activate      # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cd ..
 ```
 
-### Bootstrap and synth
-
+### 3. Bootstrap your AWS Account
 ```bash
 npx cdk bootstrap
+```
+
+### 4. Synthesize CloudFormation Templates
+```bash
 npx cdk synth
 ```
 
-### Deploy all stacks
-
+### 5. Deploy all Stacks
 ```bash
 npx cdk deploy --all --require-approval never
 ```
@@ -425,22 +449,25 @@ npx cdk deploy --all --require-approval never
 
 ## Deploy and Update Commands
 
-### Full deploy
-
+Deploying everything at once:
 ```bash
 npx cdk deploy --all --require-approval never
 ```
 
-### Typical incremental deploys
-
+### Deploying Specific Layers
+Make modifications and deploy individual components:
 ```bash
+# Update Lambda logic only
 npx cdk deploy AegisLambdaStack --require-approval never
+
+# Update State Machine configurations
 npx cdk deploy AegisWorkflowStack --require-approval never
+
+# Update Telemetry dashboards
 npx cdk deploy AegisObservabilityStack --require-approval never
 ```
 
-### Diff before deploy
-
+### Compare Local Changes against AWS Live Stacks
 ```bash
 npx cdk diff AegisWorkflowStack
 ```
@@ -449,200 +476,120 @@ npx cdk diff AegisWorkflowStack
 
 ## Run Missions
 
-### Option A: Mission Console (Streamlit)
+### Option A: Streamlit Mission Console
+1. Activate your virtual environment and start the app:
+   ```bash
+   cd frontend
+   source .venv/bin/activate    # On Windows: .venv\Scripts\activate
+   streamlit run app.py
+   ```
+2. Submit your objective (e.g. "Assess container traffic delays in the Suez Canal").
+3. Monitor execution states, download generated reports, and view CloudWatch dashboard metrics in real time.
 
-```bash
-cd frontend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-streamlit run app.py
-```
-
-Mission Console capabilities:
-
-- launch missions
-- inspect mission runs and outputs
-- preview/download reports
-- view alarm health and dashboard link
-
-### Option B: AWS CLI
-
+### Option B: AWS Command Line Interface
+Trigger an execution directly through AWS Step Functions:
 ```bash
 aws stepfunctions start-execution \
   --state-machine-arn "arn:aws:states:us-east-1:ACCOUNT_ID:stateMachine:aegis-mission-executor" \
-  --name "manual-$(date +%s)" \
-  --input '{"objective":"Investigate shipping risk through the Strait of Hormuz"}'
+  --name "cli-mission-$(date +%s)" \
+  --input '{"objective":"Assess container traffic delays in the Suez Canal"}'
 ```
 
-Then inspect:
-
+Monitor execution status:
 ```bash
-aws stepfunctions describe-execution --execution-arn "EXECUTION_ARN"
+aws stepfunctions describe-execution --execution-arn "YOUR_EXECUTION_ARN"
 ```
 
 ---
 
 ## Observability and Alerts
 
-### CloudWatch Dashboard
+### Operational Panels
+Open the CloudWatch console and view the `AegisTactical-Operations` Dashboard. Metrics update in 5-minute intervals:
+* **Active Execution Counts**: Tracks runs that are initiated, completed, or failed.
+* **Pipeline Run Latencies**: Displays durations of successful runs.
+* **Component Performance**: Graphs execution counts, error counts, and processing times for the Lambda tools.
 
-Dashboard output is exported by AegisObservabilityStack and shown in Mission Console.
-
-Tracks:
-
-- started/succeeded/failed missions
-- mission duration
-- Lambda invocations/errors/latency
-
-### Alarms
-
-Built-in alarms include:
-
-- aegis-mission-failure
-- aegis-mission-timeout
-- aegis-fetch-news-errors
-- aegis-fetch-rss-errors
-- aegis-fetch-github-errors
-- aegis-write-report-errors
-
-### Notifications
-
-Alarms publish to SNS topic aegis-tactical-alerts.
+### Configured System Alarms
+* `aegis-mission-failure`: Activates if 3 or more runs fail within 15 minutes.
+* `aegis-mission-timeout`: Alerts if a mission exceeds 30 minutes.
+* `aegis-[tool]-errors`: Alarms if Lambda error counts exceed 5 errors in a 5-minute evaluation period.
+* *Alarms automatically publish alert notifications to the `aegis-tactical-alerts` SNS Topic.*
 
 ---
 
 ## Security and Guardrails
 
-Guardrail coverage:
-
-- harmful content filters
-- prompt attack controls
-- destructive operation topic denies
-- exploit and malware topic denies
-- PII and credential blocking/anonymization
-- custom blocked terms
-
-Operational safety behavior:
-
-- low confidence or contradictory evidence routes to CONDITIONAL_PASS or CRITICAL_FAIL
-- escalation path is explicit in Step Functions for retry exhaustion and critical flags
-
-Guardrails are attached to the Bedrock Sentinel agent. The current Step Functions path uses Lambda-based
-Analyst and Sentinel runs, so guardrails apply when running through the Bedrock agent plane.
+### Active Policies
+Aegis applies Bedrock Guardrails to sanitize output:
+* **Content Moderation**: Denies offensive, hate, or violent inputs and outputs.
+* **Access Safeguards**: Topic blocking prevents attempts to run destructive CLI commands or security exploits.
+* **Data Anonymization**: Scans outputs for PII (names, phone numbers, emails, IP addresses) and anonymizes them. Blocks SSNs, passwords, and AWS credentials.
+* **Project Redaction**: Detects internal project code formats (such. as `AEGIS-[A-Z0-9]`) and redacts them.
 
 ---
 
 ## Production Readiness Checklist
 
-- Set aegis:environment to prod and deploy into a dedicated AWS account and region.
-- Replace RemovalPolicy.DESTROY and autoDeleteObjects with RETAIN on S3 buckets, log groups, and indices
-  you must preserve.
-- Restrict OpenSearch Serverless network policies if public access is not required.
-- Move tokens and secrets to AWS Secrets Manager or SSM Parameter Store; avoid hard-coded values.
-- Subscribe the SNS topic to your paging or chat system.
-- Review CloudWatch retention periods and alarm thresholds for your SLAs.
-- Enable the EventBridge schedule only after you validate guardrails and escalation rules.
+Before moving to production, complete the following configuration steps:
+
+- [ ] **Account Isolation**: Deploy Aegis in a dedicated, isolated AWS account.
+- [ ] **Data Retention**: Change deletion policies (`RemovalPolicy.DESTROY` and `autoDeleteObjects`) to `RETAIN` on S3 buckets and OpenSearch logs.
+- [ ] **Network Lockdown**: Restrict OpenSearch network policies to specific VPC interfaces instead of public access.
+- [ ] **Secret Injection**: Replace hardcoded tokens with AWS Secrets Manager or Parameter Store references.
+- [ ] **Notification Handlers**: Subscribe production paging systems or webhooks to the `aegis-tactical-alerts` SNS Topic.
+- [ ] **Log Optimization**: Adjust CloudWatch logs retention policies to align with enterprise audit rules.
+- [ ] **Continuous Sweeps**: Enable the daily EventBridge schedule to run recurring sweeps.
 
 ---
 
 ## Cost Notes
 
-Major cost drivers:
-
-- OpenSearch Serverless baseline OCUs
-- Bedrock inference usage
-- CloudWatch logs/metrics retention
-
-Always clean up when done:
-
-```bash
-npx cdk destroy --all
-```
+Baseline operations incur charges for running infrastructure:
+* **OpenSearch Serverless**: Charges for index capacity units (OCUs).
+* **Bedrock Tokens**: Costs scale based on input/output tokens processed during agent routing.
+* **Telemetry**: standard CloudWatch ingestion and storage charges.
 
 ---
 
 ## Testing
 
+Verify the local project compiles and stack definitions match schema rules:
 ```bash
+# Run unit and integration tests
 npm test
+
+# Verify CDK definitions synthesize correctly
 npx cdk synth
-npx cdk diff
 ```
 
 ---
 
 ## Troubleshooting
 
-### 1) Streamlit exits with code 1
+### 1. Streamlit exits with Code 1 on Startup
+* **Cause**: Missing python dependencies or virtual environment is inactive.
+* **Resolution**: Run `pip install -r requirements.txt` inside your active virtual environment.
 
-Usually caused by missing virtual environment packages.
+### 2. Runs Return Zero Results
+* **Cause**: Ingestion keyword search matches no articles, or feeds are inaccessible.
+* **Resolution**: Ensure the objective includes specific keywords. Test internet connectivity inside the lambda execution VPC context.
 
-Fix:
+### 3. Conflicting and Contradictory Outputs
+* **Cause**: External data feeds contain conflicting information.
+* **Resolution**: This is expected behavior. The Analyst agent flags findings as `DISPUTED` and lowers the overall confidence score.
 
-```bash
-cd frontend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-streamlit run app.py
-```
-
-### 2) Mission has zero results
-
-Use objective terms that reference concrete entities and domains. The ingestion Lambda now does keyword extraction and relevance thresholds.
-
-### 3) Report looks contradictory
-
-This is expected when sources conflict. The system should return DISPUTED with CONDITIONAL_PASS and lower verification confidence.
-
-### 4) Bedrock or OpenSearch deploy issues
-
-Verify:
-
-- model access enabled in region
-- CDK execution role has required Bedrock and AOSS permissions
-- index exists before Knowledge Base binding (handled in Foundation stack)
-
----
-
-## Repository Layout
-
-```text
-bin/
-  aegis-tactical.ts
-lib/
-  foundation-stack.ts
-  lambda-stack.ts
-  guardrails-stack.ts
-  agents-stack.ts
-  workflow-stack.ts
-  observability-stack.ts
-lambda/
-  fetch_news/
-  fetch_rss/
-  fetch_github/
-  write_report/
-agents/
-  supervisor/
-  scout/
-  analyst/
-  sentinel/
-frontend/
-  app.py
-  requirements.txt
-data/
-  ground-truth/
-test/
-  aegis-tactical.test.ts
-```
+### 4. OpenSearch Collection Fails to Deploy
+* **Cause**: IAM deployment role lacks permissions, or active region lacks support for OpenSearch Serverless collections.
+* **Resolution**: Verify that the execution role contains standard administrator policies and OpenSearch Serverless is available in your region.
 
 ---
 
 ## Cleanup
 
+Destroy all deployed infrastructure to avoid ongoing charges:
 ```bash
 npx cdk destroy --all
 ```
 
-For active accounts, also verify OpenSearch and S3 resources are removed as expected.
+Check the AWS Management Console to confirm that OpenSearch collections and S3 buckets were successfully removed.
